@@ -1,0 +1,9 @@
+{
+    "cd_seconds": 0,
+    "file_suffix": ".zip",
+    "max_image_count": 300,
+    "negative_tags": [],
+    "ban_english": true,
+    "whitelist": [],
+    "superadmin": []
+}

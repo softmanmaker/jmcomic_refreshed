@@ -1,0 +1,14 @@
+nb-cli
+nonebot2[fastapi]
+nonebot-adapter-onebot
+nonebot-plugin-apscheduler
+openai
+requests
+jmcomic
+img2pdf
+zipfile
+opencv-python
+wget
+zhconv
+selenium
+pathlib

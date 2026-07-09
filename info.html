@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>本子信息</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --background: #f5f6fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: var(--background);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            padding: 2.5rem;
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .cover {
+            width: min(60%, 300px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            margin: 0 auto 2rem;
+            display: block;
+            filter: blur(7px);
+        }
+
+        .title {
+            color: var(--primary-color);
+            margin: 0 0 1.5rem;
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .tags {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .tag {
+            background: #f0f4f8;
+            color: var(--accent-color);
+            padding: 0.6rem 1.2rem;
+            border-radius: 24px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+
+        .tag:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            .title {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <img src="" alt="本子封面" class="cover">
+        <h1 class="title" id="title"></h1>
+        <div class="tags" id="tags"></div>
+    </div>
+
+    <script>
+        // 解析URL参数
+        const params = new URLSearchParams(window.location.search);
+
+        // 设置封面（与 jmutils 生成的 jacket_{album_id}.jpg 对应）
+        const albumId = params.get('album_id');
+        const coverImg = document.querySelector('.cover');
+        if (albumId) {
+            coverImg.src = `jacket_${albumId}.jpg`;
+        }
+
+        // 设置标题
+        const titleElement = document.getElementById('title');
+        titleElement.textContent = params.get('title') || '未命名本子';
+
+        // 生成标签
+        const tagsContainer = document.getElementById('tags');
+        const tags = (params.get('tags') || '').split(',').map(tag => tag.trim()).filter(Boolean);
+
+        tags.forEach(tag => {
+            const span = document.createElement('span');
+            span.className = 'tag';
+            span.textContent = tag;
+            tagsContainer.appendChild(span);
+        });
+    </script>
+</body>
+
+</html>
