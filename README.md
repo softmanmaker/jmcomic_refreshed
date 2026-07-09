@@ -9,6 +9,7 @@
     SUPERUSERS=["管理员qq号1","管理员qq号2",...]
     ```
 - 将本插件文件夹整个复制到bot根目录下的plugins文件夹中
+- 在插件文件夹中新建`compressed/`、`info_pic/`、`manga/`三个空文件夹
 - 修改本插件文件夹中的settings.json文件，各项配置含义如下
     ```json
     {
