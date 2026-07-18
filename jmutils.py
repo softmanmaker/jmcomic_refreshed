@@ -1,4 +1,4 @@
-import os, shutil, img2pdf, zipfile, jmcomic
+import os, shutil, img2pdf, zipfile, jmcomic, threading
 from PIL import Image
 import cv2
 from selenium import webdriver
@@ -244,46 +244,80 @@ class RuleLogicExpression:
 
 
 class PackagedJmClient:
-    def __init__(self, html: jmcomic.JmHtmlClient, api: jmcomic.JmApiClient):
-        self.html = html
-        self.api = api
+    def __init__(self, html_option: jmcomic.JmOption, api_option: jmcomic.JmOption):
+        self.html_option = html_option
+        self.api_option = api_option
+        self.html = None
+        self.api = None
+        self.html_lock = threading.Lock()
+        self.api_lock = threading.Lock()
+        self.get_or_create_html_client()
+        self.get_or_create_api_client()
+
+    def get_or_create_html_client(self) -> jmcomic.JmHtmlClient | None:
+        if self.html is not None:
+            return self.html
+        with self.html_lock:
+            if self.html is None:
+                try:
+                    self.html = self.html_option.build_jm_client()
+                except Exception as e:
+                    print(f"[jmcomic] HTML客户端初始化失败：{e}")
+        return self.html
+
+    def get_or_create_api_client(self) -> jmcomic.JmApiClient | None:
+        if self.api is not None:
+            return self.api
+        with self.api_lock:
+            if self.api is None:
+                try:
+                    self.api = self.api_option.build_jm_client()
+                except Exception as e:
+                    print(f"[jmcomic] API客户端初始化失败：{e}")
+        return self.api
 
     def get_album_detail(self, comic_id: int | str) -> jmcomic.JmAlbumDetail:
-        try:
-            album = self.html.get_album_detail(comic_id)
-            return album
-        except Exception:
-            print("[jmcomic]获取本子信息：html接口失败，切换至api接口")
-            album = self.api.get_album_detail(comic_id)
-            return album
+        html = self.get_or_create_html_client()
+        if html is not None:
+            try:
+                return html.get_album_detail(comic_id)
+            except Exception:
+                print("[jmcomic]获取本子信息：html接口失败，切换至api接口")
+
+        api = self.get_or_create_api_client()
+        if api is None:
+            raise RuntimeError("HTML和API客户端均不可用")
+        return api.get_album_detail(comic_id)
 
 
 class PackagedJmOption:
     def __init__(self, html: jmcomic.JmOption, api: jmcomic.JmOption):
         self.html = html
         self.api = api
-        self.client = None
+        self.client = PackagedJmClient(html, api)
 
     def build_jm_client(self) -> PackagedJmClient:
-        if not self.client:
-            self.client = PackagedJmClient(
-                self.html.build_jm_client(), self.api.build_jm_client()
-            )
         return self.client
 
 
 def packaged_download_album(
     option: PackagedJmOption, album: jmcomic.JmAlbumDetail
 ):
-    try:
-        with jmcomic.new_downloader(option.html) as dler:
-            dler.download_by_album_detail(album)
-            dler.raise_if_has_exception()
-    except Exception:
-        print("[jmcomic]下载本子：html接口失败，切换至api接口")
-        with jmcomic.new_downloader(option.api) as dler:
-            dler.download_by_album_detail(album)
-            dler.raise_if_has_exception()
+    client = option.build_jm_client()
+    if client.get_or_create_html_client() is not None:
+        try:
+            with jmcomic.new_downloader(option.html) as dler:
+                dler.download_by_album_detail(album)
+                dler.raise_if_has_exception()
+            return
+        except Exception:
+            print("[jmcomic]下载本子：html接口失败，切换至api接口")
+
+    if client.get_or_create_api_client() is None:
+        raise RuntimeError("HTML和API客户端均不可用")
+    with jmcomic.new_downloader(option.api) as dler:
+        dler.download_by_album_detail(album)
+        dler.raise_if_has_exception()
 
 
 if __name__ == "__main__":
