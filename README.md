@@ -10,6 +10,7 @@
     ```
 - 将本插件文件夹整个复制到bot根目录下的plugins文件夹中
 - 在本插件文件夹中新建`compressed/`、`info_pic/`、`manga/`三个空文件夹
+- 插件会默认将`JM_PATH`设为插件目录，无需手动执行`export JM_PATH=...`；如需使用其他数据目录，可在启动bot前显式设置`JM_PATH`
 - 修改本插件文件夹中的settings.json文件，各项配置含义如下
     ```json
     {

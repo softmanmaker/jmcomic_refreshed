@@ -36,6 +36,7 @@ updatedb = on_command("manga_updatedb", priority=5, block=True, permission=SUPER
 
 # 全局配置
 script_dir = os.path.dirname(os.path.abspath(__file__))
+os.environ.setdefault("JM_PATH", script_dir)
 conn = sqlite3.connect(os.path.join(script_dir, "albums.db"))  # 创建数据库连接
 
 config_path = os.path.join(script_dir, "settings.json")

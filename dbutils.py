@@ -8,7 +8,7 @@ import zhconv
 
 class DbUtils:
     def __init__(self, client: PackagedJmClient):
-        self.client = client.html # 限定只使用html客户端
+        self.client = client  # 数据库更新限定只使用HTML客户端
         self.db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'albums.db')
         self.thread_num = 5
         self.semaphore = threading.Semaphore(self.thread_num)
@@ -105,7 +105,10 @@ class DbUtils:
                 self.save_progress(album_id)
                 return
                 
-            album = self.client.get_album_detail(album_id)
+            html_client = self.client.get_or_create_html_client()
+            if html_client is None:
+                raise RuntimeError("HTML客户端不可用")
+            album = html_client.get_album_detail(album_id)
             album_info = {
                 'id': album_id,
                 'name': album.name,
@@ -134,7 +137,10 @@ class DbUtils:
             self.close_db()  # 关闭线程本地的数据库连接
 
     def get_latest_id(self):
-        page: JmCategoryPage = self.client.categories_filter(
+        html_client = self.client.get_or_create_html_client()
+        if html_client is None:
+            raise RuntimeError("HTML客户端不可用")
+        page: JmCategoryPage = html_client.categories_filter(
             page=1,
             time=JmMagicConstants.TIME_ALL,
             category=JmMagicConstants.CATEGORY_SINGLE,
